@@ -57,4 +57,4 @@ echo "Creating ZIP archive ${ZIP_NAME}..."
 rm -f "${ZIP_NAME}"
 zip -r "${ZIP_NAME}" "${APP_BUNDLE}"
 
-echo "Release package created at ${ZIP_NAME}"
+echo "Release package created at $(pwd)/${ZIP_NAME}"
