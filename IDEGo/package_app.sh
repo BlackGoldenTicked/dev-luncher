@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 APP_NAME="IDEGo"
 BUILD_DIR=".build/release"
@@ -49,3 +50,11 @@ cat > "${CONTENTS_DIR}/Info.plist" <<EOF
 EOF
 
 echo "App Bundle created at ${APP_BUNDLE}"
+
+# Create ZIP archive
+ZIP_NAME="${APP_NAME}.zip"
+echo "Creating ZIP archive ${ZIP_NAME}..."
+rm -f "${ZIP_NAME}"
+zip -r "${ZIP_NAME}" "${APP_BUNDLE}"
+
+echo "Release package created at ${ZIP_NAME}"

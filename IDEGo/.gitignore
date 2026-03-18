@@ -1,4 +1,6 @@
-.build/.lock
+.build/
+*.app
+*.zip.lock
 .build/build.db
 .build/debug
 .build/debug.yaml

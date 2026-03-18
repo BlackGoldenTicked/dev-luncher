@@ -15,3 +15,4 @@ DerivedData/
 
 # IDEGo specific
 IDEGo.app/
+*.zip
