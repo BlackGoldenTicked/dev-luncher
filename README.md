@@ -1,4 +1,4 @@
-# 🚀 DevLauncher
+# 🚀 IDEGo
 
 <p align="center">
   <img src="https://img.shields.io/badge/macOS-14.0+-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS 14.0+">
@@ -6,9 +6,9 @@
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License MIT">
 </p>
 
-DevLauncher is a lightweight, lightning-fast macOS Menu Bar application designed for developers to instantly search and launch projects with their favorite IDEs.
+IDEGo is a lightweight, lightning-fast macOS Menu Bar application designed for developers to instantly search and launch projects with their favorite IDEs.
 
-DevLauncher 是一个轻量级、极速的 macOS 菜单栏应用，专为开发者设计，可让您使用最喜欢的 IDE 即时搜索并启动项目。
+IDEGo 是一个轻量级、极速的 macOS 菜单栏应用，专为开发者设计，可让您使用最喜欢的 IDE 即时搜索并启动项目。
 
 ---
 
@@ -39,8 +39,8 @@ DevLauncher 是一个轻量级、极速的 macOS 菜单栏应用，专为开发�
 
 1. Clone the repository (克隆仓库):
    ```bash
-   git clone https://github.com/yourusername/devlauncher.git
-   cd devlauncher/DevLauncherProject
+   git clone https://github.com/yourusername/idego.git
+   cd idego/IDEGoProject
    ```
 
 2. Run the build script (运行构建脚本):
@@ -48,12 +48,12 @@ DevLauncher 是一个轻量级、极速的 macOS 菜单栏应用，专为开发�
    ./package_app.sh
    ```
 
-3. The `DevLauncher.app` will be generated in the current directory. Move it to your `/Applications` folder.
-   (`DevLauncher.app` 将生成在当前目录中，将其拖入 `/Applications` 应用程序文件夹即可使用)
+3. The `IDEGo.app` will be generated in the current directory. Move it to your `/Applications` folder.
+   (`IDEGo.app` 将生成在当前目录中，将其拖入 `/Applications` 应用程序文件夹即可使用)
 
 ## 📖 Usage / 使用方法
 
-1. **Launch (启动)**: Open `DevLauncher` from your Applications folder. It will appear as a terminal icon in your menu bar.
+1. **Launch (启动)**: Open `IDEGo` from your Applications folder. It will appear as a terminal icon in your menu bar.
 2. **Configure (配置)**: 
    - Click the menu bar icon and hit the **gear icon** ⚙️ (or press `Cmd+,`) to open Settings.
    - Click **Add Folder** to add your project directories (e.g., `~/Workspace`).

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-APP_NAME="DevLauncher"
+APP_NAME="IDEGo"
 BUILD_DIR=".build/release"
 APP_BUNDLE="${APP_NAME}.app"
 CONTENTS_DIR="${APP_BUNDLE}/Contents"

@@ -9,7 +9,7 @@ final class ProjectIndexManager: ObservableObject {
 
     private let settings = SettingsManager.shared
     private let searchEngine = SearchEngine()
-    private let queue = DispatchQueue(label: "devlauncher.project-index", qos: .utility)
+    private let queue = DispatchQueue(label: "idego.project-index", qos: .utility)
 
     private var timer: DispatchSourceTimer?
     private var settingsCancellable: AnyCancellable?

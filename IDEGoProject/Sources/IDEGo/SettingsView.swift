@@ -176,7 +176,7 @@ struct AboutSection: View {
     var body: some View {
         VStack(spacing: 12) {
             VStack(spacing: 4) {
-                Text("DevLauncher v0.1.0")
+                Text("IDEGo v0.1.0")
                     .font(.footnote)
                     .fontWeight(.medium)
                 

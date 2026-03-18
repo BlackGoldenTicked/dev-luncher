@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct DevLauncherApp: App {
+struct IDEGoApp: App {
     @StateObject private var settingsManager = SettingsManager.shared
     @StateObject private var toolManager = ToolManager.shared
     
@@ -10,7 +10,7 @@ struct DevLauncherApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("DevLauncher", systemImage: "terminal.fill") {
+        MenuBarExtra("IDEGo", systemImage: "terminal.fill") {
             ContentView()
                 .environmentObject(settingsManager)
                 .environmentObject(toolManager)

@@ -13,5 +13,5 @@ DerivedData/
 # macOS
 .DS_Store
 
-# DevLauncher specific
-DevLauncher.app/
+# IDEGo specific
+IDEGo.app/

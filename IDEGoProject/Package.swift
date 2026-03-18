@@ -2,10 +2,10 @@
 import PackageDescription
 
 let package = Package(
-    name: "DevLauncher",
+    name: "IDEGo",
     platforms: [.macOS(.v13)],
     products: [
-        .executable(name: "DevLauncher", targets: ["DevLauncher"])
+        .executable(name: "IDEGo", targets: ["IDEGo"])
     ],
     dependencies: [
         .package(url: "https://github.com/soffes/HotKey.git", from: "0.2.1"),
@@ -13,12 +13,12 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "DevLauncher",
+            name: "IDEGo",
             dependencies: [
                 "HotKey",
                 .product(name: "Fuse", package: "fuse-swift")
             ],
-            path: "Sources/DevLauncher"
+            path: "Sources/IDEGo"
         )
     ]
 )

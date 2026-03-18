@@ -60,7 +60,7 @@ class SettingsManager: ObservableObject {
         }
     }
     
-    private let storageKey = "DevLauncherConfig"
+    private let storageKey = "IDEGoConfig"
     
     init() {
         if let data = UserDefaults.standard.data(forKey: storageKey),
