@@ -11,7 +11,7 @@ class UsageManager: ObservableObject {
     
     @Published var usages: [String: ProjectUsage] = [:]
     
-    private let storageKey = "IDEGoProjectUsage"
+    private let storageKey = "IDEGoUsage"
     
     init() {
         load()

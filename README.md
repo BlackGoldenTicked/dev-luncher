@@ -40,7 +40,7 @@ IDEGo 是一个轻量级、极速的 macOS 菜单栏应用，专为开发者设�
 1. Clone the repository (克隆仓库):
    ```bash
    git clone https://github.com/yourusername/idego.git
-   cd idego/IDEGoProject
+   cd idego/IDEGo
    ```
 
 2. Run the build script (运行构建脚本):
