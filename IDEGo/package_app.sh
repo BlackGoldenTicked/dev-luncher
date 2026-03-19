@@ -2,14 +2,14 @@
 set -e
 
 APP_NAME="IDEGo"
-BUILD_DIR=".build/release"
+BUILD_DIR=".build/apple/Products/Release"
 APP_BUNDLE="${APP_NAME}.app"
 CONTENTS_DIR="${APP_BUNDLE}/Contents"
 MACOS_DIR="${CONTENTS_DIR}/MacOS"
 RESOURCES_DIR="${CONTENTS_DIR}/Resources"
 
-echo "Building ${APP_NAME}..."
-swift build -c release --disable-sandbox
+echo "Building ${APP_NAME} for Universal (x86_64 and arm64)..."
+swift build -c release --disable-sandbox --arch x86_64 --arch arm64
 
 echo "Creating App Bundle..."
 rm -rf "${APP_BUNDLE}"
