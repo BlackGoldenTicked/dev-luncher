@@ -18,7 +18,10 @@ let package = Package(
                 "HotKey",
                 .product(name: "Fuse", package: "fuse-swift")
             ],
-            path: "Sources/IDEGo"
+            path: "Sources/IDEGo",
+            resources: [
+                .process("Resources")
+            ]
         )
     ]
 )

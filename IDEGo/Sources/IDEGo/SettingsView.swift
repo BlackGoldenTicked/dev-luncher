@@ -125,14 +125,12 @@ struct ScanPathsSection: View {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
         panel.prompt = "Select"
+        panel.level = .modalPanel
         NSApp.activate(ignoringOtherApps: true)
-        
-        panel.begin { response in
-            if response == .OK, let url = panel.url {
-                DispatchQueue.main.async {
-                    settings.addPath(url.path)
-                }
-            }
+
+        let response = panel.runModal()
+        if response == .OK, let url = panel.url {
+            settings.addPath(url.path)
         }
     }
 }

@@ -13,12 +13,15 @@ final class ProjectIndexManager: ObservableObject {
 
     private var timer: DispatchSourceTimer?
     private var settingsCancellable: AnyCancellable?
+    private var hasStarted = false
 
     private var lastConfigSignature: String = ""
     private var lastRootFingerprint: String = ""
+
     private var searchCache: [String: [Project]] = [:]
     private var searchCacheOrder: [String] = []
     private let maxSearchCacheEntries = 64
+    private let cacheLock = NSLock()
 
     private init() {
         settingsCancellable = settings.$config
@@ -30,16 +33,16 @@ final class ProjectIndexManager: ObservableObject {
 
     func start() {
         queue.async { [weak self] in
-            guard let self else { return }
-            if self.timer == nil {
-                let timer = DispatchSource.makeTimerSource(queue: self.queue)
-                timer.schedule(deadline: .now() + .seconds(2), repeating: .seconds(8), leeway: .seconds(2))
-                timer.setEventHandler { [weak self] in
-                    self?.refresh(force: false)
-                }
-                self.timer = timer
-                timer.resume()
+            guard let self, !self.hasStarted else { return }
+            self.hasStarted = true
+
+            let timer = DispatchSource.makeTimerSource(queue: self.queue)
+            timer.schedule(deadline: .now() + .seconds(2), repeating: .seconds(30), leeway: .seconds(5))
+            timer.setEventHandler { [weak self] in
+                self?.refresh(force: false)
             }
+            self.timer = timer
+            timer.resume()
             self.refresh(force: true)
         }
     }
@@ -52,23 +55,25 @@ final class ProjectIndexManager: ObservableObject {
 
     func search(query: String) -> [Project] {
         let normalized = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if normalized.isEmpty { 
-            // Default limit 10 items when no query
-            // Filter only root-level projects for default view
+        if normalized.isEmpty {
             let rootProjects = projects.filter { $0.isRootLevel }
-            // They are already sorted by date descending in scan()
             return Array(rootProjects.prefix(10))
         }
 
+        cacheLock.lock()
         if let cached = searchCache[normalized] {
+            cacheLock.unlock()
             return cached
         }
+        cacheLock.unlock()
 
         let result = searchEngine.search(query: query, projects: projects)
-        // Search limit 15 items
         let limitedResult = Array(result.prefix(15))
-        
+
+        cacheLock.lock()
         cacheSearchResult(limitedResult, for: normalized)
+        cacheLock.unlock()
+
         return limitedResult
     }
 
@@ -80,7 +85,7 @@ final class ProjectIndexManager: ObservableObject {
         if !force, configSignature == lastConfigSignature, rootFingerprint == lastRootFingerprint {
             return
         }
-        
+
         DispatchQueue.main.async { [weak self] in
             self?.isScanning = true
         }
@@ -95,11 +100,13 @@ final class ProjectIndexManager: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.isScanning = false
-            
+
             if scannedPaths != currentPaths {
                 self.projects = scanned
+                self.cacheLock.lock()
                 self.searchCache.removeAll(keepingCapacity: true)
                 self.searchCacheOrder.removeAll(keepingCapacity: true)
+                self.cacheLock.unlock()
             }
         }
     }

@@ -5,10 +5,6 @@ struct IDEGoApp: App {
     @StateObject private var settingsManager = SettingsManager.shared
     @StateObject private var toolManager = ToolManager.shared
     
-    init() {
-        ProjectIndexManager.shared.start()
-    }
-
     var body: some Scene {
         MenuBarExtra("IDEGo", systemImage: "terminal.fill") {
             ContentView()

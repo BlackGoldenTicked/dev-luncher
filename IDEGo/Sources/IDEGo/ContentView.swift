@@ -3,7 +3,7 @@ import SwiftUI
 struct ToolIcon: View {
     let tool: DevTool
     let isSelected: Bool
-    
+
     private var fallbackIcon: String {
         return tool.iconName
     }
@@ -14,10 +14,11 @@ struct ToolIcon: View {
             .replacingOccurrences(of: ".", with: "")
         return "icon_\(safeName)_color"
     }
-    
+
     var body: some View {
-        if let image = NSImage(named: iconResourceName) {
-             Image(nsImage: image)
+        if let url = Bundle.module.url(forResource: iconResourceName, withExtension: "icns"),
+           let image = NSImage(contentsOf: url) {
+            Image(nsImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .opacity(isSelected ? 1.0 : 0.8)
@@ -34,11 +35,11 @@ struct ContentView: View {
     @State private var query = ""
     @State private var projects: [Project] = []
     @State private var filteredProjects: [Project] = []
-    
+
     @EnvironmentObject private var toolManager: ToolManager
     @StateObject private var usageManager = UsageManager.shared
     @StateObject private var indexManager = ProjectIndexManager.shared
-    
+
     // Focus & Selection State
     enum FocusArea {
         case projects
@@ -46,16 +47,15 @@ struct ContentView: View {
     }
     @State private var focusArea: FocusArea = .projects
     @State private var selectedProjectIndex: Int = 0
-    @State private var selectedToolIndex: Int? = nil // Changed to Optional Int
+    @State private var selectedToolIndex: Int? = nil
     @State private var showSettings = false
     @State private var isLaunching = false
     @State private var launchingToolName = ""
     @State private var launchToastVisibleAt: Date?
     @State private var hideLaunchToastWorkItem: DispatchWorkItem?
-    
-    @State private var topProjects: [Project] = []
+
     @State private var eventMonitor: Any?
-    
+
     var body: some View {
         ZStack {
             if showSettings {
@@ -74,26 +74,11 @@ struct ContentView: View {
                         selectedProjectIndex: $selectedProjectIndex,
                         focusArea: $focusArea,
                         showSettings: $showSettings,
-                        selectedToolIndex: $selectedToolIndex,
-                        onEnter: {
-                            if !filteredProjects.isEmpty {
-                                if focusArea == .projects {
-                                     focusArea = .tools
-                                     if selectedToolIndex == nil && !toolManager.tools.isEmpty {
-                                         selectedToolIndex = 0
-                                     }
-                                } else {
-                                    if let index = selectedToolIndex, toolManager.tools.indices.contains(index) {
-                                        let tool = toolManager.tools[index]
-                                        launchWithSelectedTool(tool)
-                                    }
-                                }
-                            }
-                        }
+                        selectedToolIndex: $selectedToolIndex
                     )
-                    
+
                     Divider()
-                    
+
                     // Sidebar (Right)
                     SidebarContent(
                         focusArea: $focusArea,
@@ -106,7 +91,7 @@ struct ContentView: View {
                         }
                     )
                     .transition(.move(edge: .trailing).combined(with: .opacity))
-                    .opacity(focusArea == .tools ? 1.0 : 0.6) // Visual cue for disabled state
+                    .opacity(focusArea == .tools ? 1.0 : 0.6)
                     .overlay(
                         Color.clear
                             .contentShape(Rectangle())
@@ -120,7 +105,6 @@ struct ContentView: View {
                             }
                             .allowsHitTesting(focusArea == .projects)
                     )
-                    // .disabled(focusArea == .projects) // Removed to allow overlay interaction
                 }
                 .transition(.opacity)
                 .zIndex(0)
@@ -164,17 +148,10 @@ struct ContentView: View {
         }
         .frame(width: 460, height: 500)
         .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
-        .background(
-            Button("") {
-                // no-op
-            }
-            .keyboardShortcut(.downArrow, modifiers: [])
-        )
         .onAppear {
             indexManager.start()
             projects = indexManager.projects
             filteredProjects = indexManager.search(query: query)
-            topProjects = usageManager.getTopProjects(limit: 5)
             setupEventMonitor()
         }
         .onDisappear {
@@ -190,27 +167,20 @@ struct ContentView: View {
             projects = newProjects
             filteredProjects = indexManager.search(query: query)
         }
-        .onReceive(usageManager.$usages) { _ in
-             topProjects = usageManager.getTopProjects(limit: 5)
-        }
     }
-    
+
     private func setupEventMonitor() {
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            // Handle key events for navigation
-            // Ignore events if settings is shown
             if self.showSettings {
                 return event
             }
-            
-            // Check for modifier keys to avoid intercepting shortcuts
-            if event.modifierFlags.contains(.command) || 
-               event.modifierFlags.contains(.control) || 
+
+            if event.modifierFlags.contains(.command) ||
+               event.modifierFlags.contains(.control) ||
                event.modifierFlags.contains(.option) {
                 return event
             }
-            
-            // Basic key codes
+
             switch event.keyCode {
             case 125: // Down Arrow
                 if focusArea == .tools {
@@ -240,7 +210,7 @@ struct ContentView: View {
                     selectedProjectIndex -= 1
                     return nil
                 }
-            case 124: // Right Arrow
+            case 124: // Right Arrow — only intercept when focus is on projects list
                 if focusArea == .projects && !toolManager.tools.isEmpty {
                     focusArea = .tools
                     if selectedToolIndex == nil {
@@ -248,23 +218,21 @@ struct ContentView: View {
                     }
                     return nil
                 }
-            case 123: // Left Arrow
+            case 123: // Left Arrow — only intercept when focus is on tools sidebar
                 if focusArea == .tools {
                     focusArea = .projects
-                    selectedToolIndex = nil // Deselect tool when moving back to projects
+                    selectedToolIndex = nil
                     return nil
                 }
             case 36: // Enter
                 if !filteredProjects.isEmpty {
                     if focusArea == .projects {
-                         // Enter on project -> move to tools
-                         focusArea = .tools
-                         if selectedToolIndex == nil && !toolManager.tools.isEmpty {
-                             selectedToolIndex = 0
-                         }
-                         return nil // Consume event to prevent double submission
+                        focusArea = .tools
+                        if selectedToolIndex == nil && !toolManager.tools.isEmpty {
+                            selectedToolIndex = 0
+                        }
+                        return nil
                     } else {
-                        // Enter on tool -> Launch
                         if let index = selectedToolIndex, toolManager.tools.indices.contains(index) {
                             let tool = toolManager.tools[index]
                             launchWithSelectedTool(tool)
@@ -278,7 +246,7 @@ struct ContentView: View {
             return event
         }
     }
-    
+
     private func removeEventMonitor() {
         if let monitor = eventMonitor {
             NSEvent.removeMonitor(monitor)
@@ -308,7 +276,6 @@ struct ContentView: View {
                     isLaunching = false
                 }
                 launchToastVisibleAt = nil
-                // Clear query and close window after launch
                 query = ""
                 NSApp.hide(nil)
             }
@@ -316,7 +283,7 @@ struct ContentView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + remaining, execute: hideTask)
         }
     }
-    
+
 }
 
 struct MainContent: View {
@@ -326,8 +293,7 @@ struct MainContent: View {
     @Binding var focusArea: ContentView.FocusArea
     @Binding var showSettings: Bool
     @Binding var selectedToolIndex: Int?
-    let onEnter: () -> Void
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Search Bar
@@ -337,12 +303,9 @@ struct MainContent: View {
                 TextField("Search projects...", text: $query)
                     .textFieldStyle(.plain)
                     .font(.title3)
-                    .onSubmit {
-                        onEnter()
-                    }
-                
+
                 Spacer()
-                
+
                 Button(action: {
                     withAnimation {
                         showSettings = true
@@ -356,93 +319,99 @@ struct MainContent: View {
             }
             .padding()
             .background(VisualEffectView(material: .sidebar, blendingMode: .behindWindow))
-            
+
             Divider()
-            
+
             // Project List
-                    ScrollViewReader { proxy in
-                        List(0..<filteredProjects.count, id: \.self) { index in
-                            let project = filteredProjects[index]
-                            let isSelected = (selectedProjectIndex == index)
-                            let isFocused = (focusArea == .projects)
-                            
-                            HStack {
-                                Image(systemName: "folder.fill")
-                                    .foregroundColor(.blue)
-                                    .font(.title2)
-                                
-                                VStack(alignment: .leading) {
-                                    Text(project.name)
-                                        .font(.headline)
-                                        .foregroundColor(isSelected ? .white : .primary)
-                                    Text(project.path)
-                                        .font(.caption)
-                                        .foregroundColor(isSelected ? .white.opacity(0.8) : .secondary)
-                                        .lineLimit(1)
-                                        .truncationMode(.middle)
-                                }
-                                Spacer()
-                                
-                                if isSelected && isFocused {
-                                    Text("↩")
-                                        .font(.caption)
-                                        .foregroundColor(.white.opacity(0.8))
-                                    Image(systemName: "arrow.right")
-                                        .font(.caption)
-                                        .foregroundColor(.white.opacity(0.8))
-                                }
-                            }
-                            .padding(.vertical, 4)
-                            .contentShape(Rectangle()) // Make entire row clickable
-                            .onTapGesture {
-                                selectedProjectIndex = index
-                                focusArea = .tools
-                            }
-                            .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
-                            .listRowBackground(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(isSelected ? (isFocused ? Color.accentColor : Color.gray.opacity(0.5)) : Color.clear)
-                                    .padding(.horizontal, 4)
-                            )
-                            .id(index)
+            ScrollViewReader { proxy in
+                List(filteredProjects) { project in
+                    let index = filteredProjects.firstIndex(of: project) ?? 0
+                    let isSelected = (selectedProjectIndex == index)
+                    let isFocused = (focusArea == .projects)
+
+                    HStack {
+                        Image(systemName: "folder.fill")
+                            .foregroundColor(isSelected ? .white.opacity(0.9) : .blue)
+                            .font(.title2)
+
+                        VStack(alignment: .leading) {
+                            Text(project.name)
+                                .font(.headline)
+                                .foregroundColor(isSelected ? .white : .primary)
+                            Text(project.path)
+                                .font(.caption)
+                                .foregroundColor(isSelected ? .white.opacity(0.8) : .secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
                         }
-                        .listStyle(.plain)
-                        .onChange(of: selectedProjectIndex) { newIndex in
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                proxy.scrollTo(newIndex, anchor: .center)
-                            }
+                        Spacer()
+
+                        if isSelected && isFocused {
+                            Text("↩")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                            Image(systemName: "arrow.right")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
                         }
+                    }
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedProjectIndex = index
+                        focusArea = .tools
+                        if selectedToolIndex == nil {
+                            selectedToolIndex = 0
+                        }
+                    }
+                    .listRowInsets(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(isSelected ? (isFocused ? Color.accentColor : Color.gray.opacity(0.5)) : Color.clear)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                    )
+                    .id(project.id)
+                }
+                .listStyle(.plain)
+                .onChange(of: selectedProjectIndex) { newIndex in
+                    if let project = filteredProjects.indices.contains(newIndex) ? filteredProjects[newIndex] : nil {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            proxy.scrollTo(project.id, anchor: .center)
+                        }
+                    }
+                }
             }
         }
-        .frame(width: 260) // Reduced width to 60%
+        .frame(width: 260)
     }
 }
 
 struct SidebarContent: View {
     @Binding var focusArea: ContentView.FocusArea
     @ObservedObject var toolManager: ToolManager
-    @Binding var selectedToolIndex: Int? // Changed to Optional
+    @Binding var selectedToolIndex: Int?
     let filteredProjects: [Project]
     let selectedProjectIndex: Int
     let onLaunch: (DevTool) -> Void
-    
+
     var body: some View {
         VStack(spacing: 0) {
-            // Only Tool Selector View
             Text("Open with")
                 .font(.caption)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
                 .padding(.vertical, 8)
-            
+
             Divider()
-            
+
             ScrollViewReader { toolProxy in
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 2) {
                         ForEach(Array(toolManager.tools.enumerated()), id: \.element.id) { index, tool in
                             let isSelected = (index == selectedToolIndex)
-                            
+
                             Button(action: {
                                 selectedToolIndex = index
                                 focusArea = .tools
@@ -460,23 +429,23 @@ struct SidebarContent: View {
                                             .fill(Color.clear)
                                             .frame(width: 3)
                                     }
-                                    
+
                                     // Tool Icon
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 6)
                                             .fill(isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
                                             .frame(width: 32, height: 32)
-                                        
+
                                         ToolIcon(tool: tool, isSelected: isSelected)
                                             .frame(width: 20, height: 20)
                                     }
-                                    
+
                                     // Tool Name
                                     Text(tool.name)
                                         .font(.system(size: 13))
                                         .foregroundColor(isSelected ? .white : .primary)
                                         .lineLimit(1)
-                                    
+
                                     Spacer()
                                 }
                                 .padding(.horizontal, 8)
@@ -501,10 +470,10 @@ struct SidebarContent: View {
                     }
                 }
             }
-            
+
             Spacer()
         }
-        .frame(width: 200) // Increased width for tool names
+        .frame(width: 200)
         .background(VisualEffectView(material: .sidebar, blendingMode: .behindWindow))
     }
 }
@@ -512,7 +481,7 @@ struct SidebarContent: View {
 struct VisualEffectView: NSViewRepresentable {
     let material: NSVisualEffectView.Material
     let blendingMode: NSVisualEffectView.BlendingMode
-    
+
     func makeNSView(context: Context) -> NSVisualEffectView {
         let visualEffectView = NSVisualEffectView()
         visualEffectView.material = material
@@ -520,7 +489,7 @@ struct VisualEffectView: NSViewRepresentable {
         visualEffectView.state = .active
         return visualEffectView
     }
-    
+
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
         nsView.material = material
         nsView.blendingMode = blendingMode
