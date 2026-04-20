@@ -27,7 +27,7 @@ IDEGo 是一个轻量级、极速的 macOS 菜单栏应用，专为开发者设�
 
 ## 📸 Screenshots / 截图预览
 
-*(Add screenshots of your app here / 在此处添加您的应用截图)*
+![截图](image.png)
 <!--
 ![Main Interface](docs/screenshot_main.png)
 ![Settings](docs/screenshot_settings.png)
