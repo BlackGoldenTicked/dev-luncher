@@ -38,15 +38,20 @@ class Launcher {
     }
     
     private static func openWithTerminal(project: Project, command: String) {
-        // Construct AppleScript to open Terminal/iTerm and run command
-        // This is a simple implementation using Terminal.app
+        let escapedPath = project.path
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+        let escapedCommand = command
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+
         let script = """
         tell application "Terminal"
             activate
-            do script "cd \(project.path) && \(command)"
+            do script "cd \"\(escapedPath)\" && \(escapedCommand)"
         end tell
         """
-        
+
         if let appleScript = NSAppleScript(source: script) {
             var error: NSDictionary?
             appleScript.executeAndReturnError(&error)

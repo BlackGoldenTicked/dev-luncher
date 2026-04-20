@@ -4,8 +4,7 @@ struct SettingsView: View {
     @EnvironmentObject private var settings: SettingsManager
     @EnvironmentObject private var toolManager: ToolManager
     @Binding var isPresented: Bool
-    @State private var isFileImporterPresented = false
-    
+
     var body: some View {
         VStack(spacing: 0) {
             HeaderView(isPresented: $isPresented)
@@ -83,7 +82,7 @@ struct HeaderView: View {
 
 struct ScanPathsSection: View {
     @ObservedObject var settings: SettingsManager
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -101,7 +100,7 @@ struct ScanPathsSection: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
             }
-            
+
             VStack(spacing: 8) {
                 if settings.config.pathConfigs.isEmpty {
                     Text("No paths configured")
@@ -118,21 +117,31 @@ struct ScanPathsSection: View {
             }
         }
     }
-    
+
     private func presentFolderPicker() {
-        let panel = NSOpenPanel()
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
-        panel.allowsMultipleSelection = false
-        panel.prompt = "Select"
-        NSApp.activate(ignoringOtherApps: true)
-        
-        panel.begin { response in
+        // MenuBarExtra(.window) runs as .accessory (no dock icon, no proper
+        // foreground status).  NSOpenPanel.runModal() requires the app to be
+        // a regular foreground app, otherwise macOS kills the modal session
+        // the moment the MenuBarExtra popover auto-closes on focus loss.
+        //
+        // Fix: temporarily switch to .regular so the app owns the screen,
+        // run the modal, then switch back.
+        DispatchQueue.main.async {
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+
+            let panel = NSOpenPanel()
+            panel.canChooseFiles = false
+            panel.canChooseDirectories = true
+            panel.allowsMultipleSelection = false
+            panel.prompt = "Select"
+
+            let response = panel.runModal()
             if response == .OK, let url = panel.url {
-                DispatchQueue.main.async {
-                    settings.addPath(url.path)
-                }
+                SettingsManager.shared.addPath(url.path)
             }
+
+            NSApp.setActivationPolicy(.accessory)
         }
     }
 }

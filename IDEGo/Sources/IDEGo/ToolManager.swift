@@ -35,15 +35,17 @@ class ToolManager: ObservableObject {
         
         // Define all supported tools (Sorted as requested)
         let allTools = [
-            // 1. Trae
+            // 1. Finder (default first)
+            DevTool(name: "Finder", type: .app(bundleId: "com.apple.finder"), iconName: "folder.fill"),
+            // 2. Trae
             DevTool(name: "Trae", type: .app(bundleId: "com.trae.app"), iconName: "t.square"),
-            // 2. Cursor
+            // 3. Cursor
             DevTool(name: "Cursor", type: .app(bundleId: "com.todesktop.230313mzl4w4u92"), iconName: "arrow.up.right.square"),
-            // 3. IDEA
+            // 4. IDEA
             DevTool(name: "IntelliJ IDEA", type: .app(bundleId: "com.jetbrains.intellij"), iconName: "terminal"),
-            // 4. Kiro
+            // 5. Kiro
             DevTool(name: "Kiro", type: .app(bundleId: "dev.kiro.desktop"), iconName: "k.square"), // Assuming icon exists or fallback to system
-            // 5. Xcode
+            // 6. Xcode
             DevTool(name: "Xcode", type: .app(bundleId: "com.apple.dt.Xcode"), iconName: "hammer")
         ]
         
